@@ -1,6 +1,8 @@
 local MiniMessage = import "net.kyori.adventure.text.minimessage.MiniMessage"
 local Placeholder = import "net.kyori.adventure.text.minimessage.tag.resolver.Placeholder"
 local TagResolver = import "net.kyori.adventure.text.minimessage.tag.resolver.TagResolver"
+local PersistentDataType = import "org.bukkit.persistence.PersistentDataType"
+local canReceiveMessagesKey = newInstance("org.bukkit.NamespacedKey", {"lualinkmessages", "canreceivemessages"})
 local lastMessaged = {} -- Store the last person messaged for /r (using UUIDs)
 local Options = {
     Receive = "<gray>[From <sender>]: <reset><message>",
@@ -43,6 +45,10 @@ script.registerSimpleCommand(function(sender, args)
         sender:sendRichMessage("<red>Player not found or is not online: " .. target)
         return
     end
+    if not targetPlayer:getPersistentDataContainer():getOrDefault(canReceiveMessagesKey, PersistentDataType.BOOLEAN, true) then
+        sender:sendRichMessage("<red>Player has private messages disabled.")
+        return
+    end
 
     sendPrivateMessage(sender, targetPlayer, message)
 end, {
@@ -68,6 +74,11 @@ script.registerSimpleCommand(function(sender, args)
         return
     end
 
+    if not lastTarget:getPersistentDataContainer():getOrDefault(canReceiveMessagesKey, PersistentDataType.BOOLEAN, true) then
+        sender:sendRichMessage("<red>Player has private messages disabled.")
+        return
+    end
+
     if #args < 1 then
         sender:sendRichMessage("<red>Usage: /r <message>")
         return
@@ -81,4 +92,25 @@ end, {
     description = "Reply to the last player messaged",
     usage = "/reply <message>",
     aliases = {"r"}
+})
+
+-- Register the /togglemsg command
+script.registerSimpleCommand(function(sender, args)
+    if not utils.instanceOf(sender, "org.bukkit.entity.Player") then
+        sender:sendRichMessage("<red>Only players can use this command.")
+        return
+    end
+    local pdc = sender:getPersistentDataContainer()
+    local state = pdc:getOrDefault(canReceiveMessagesKey, PersistentDataType.BOOLEAN, true)
+    pdc:set(canReceiveMessagesKey, PersistentDataType.BOOLEAN, not state)
+    if not state then
+        sender:sendRichMessage("<green>Private messages enabled.")
+    else
+        sender:sendRichMessage("<red>Private messages disabled.")
+    end
+end, {
+    name = "togglemsg",
+    description = "Toggle private messages",
+    usage = "/togglemsg <on|off>",
+    aliases = {"togglepm", "togglemsg"}
 })
