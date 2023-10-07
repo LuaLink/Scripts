@@ -156,21 +156,18 @@ end, {
     end
 })
 
-script.onEnable(function()
-    -- Event to cancel the teleport if the player moves before the wait time is up
-    script.hook("org.bukkit.event.player.PlayerMoveEvent", function(event)
-        local player = event:getPlayer()
-        -- Ignore camera movement
-        if event:getFrom():getBlockX() == event:getTo():getBlockX() and
-            event:getFrom():getBlockY() == event:getTo():getBlockY() and
-            event:getFrom():getBlockZ() == event:getTo():getBlockZ() then
-            return
-        end
-        local uniqueId = player:getUniqueId()
-        if teleportTasks[uniqueId] then
-            teleportTasks[uniqueId]:cancel()
-            teleportTasks[uniqueId] = nil
-            player:sendRichMessage("<red>Teleport cancelled due to movement.")
-        end
-    end)
+script.hook("org.bukkit.event.player.PlayerMoveEvent", function(event)
+    local player = event:getPlayer()
+    -- Ignore camera movement
+    if event:getFrom():getBlockX() == event:getTo():getBlockX() and
+        event:getFrom():getBlockY() == event:getTo():getBlockY() and
+        event:getFrom():getBlockZ() == event:getTo():getBlockZ() then
+        return
+    end
+    local uniqueId = player:getUniqueId()
+    if teleportTasks[uniqueId] then
+        teleportTasks[uniqueId]:cancel()
+        teleportTasks[uniqueId] = nil
+        player:sendRichMessage("<red>Teleport cancelled due to movement.")
+    end
 end)
