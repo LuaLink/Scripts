@@ -97,7 +97,7 @@ script.registerSimpleCommand(function(sender, args)
 
     if waitTime and waitTime > 0 then
         -- Schedule a delayed task to teleport the player after the wait time
-        local teleportTask = utils.runTaskLater(function()
+        local teleportTask = scheduler.runDelayed(function()
             if warpTarget:isOnline() and not warpTarget:isDead() then
                 teleportTasks[warpTarget:getUniqueId()] = nil
                 warpTarget:teleport(location)
